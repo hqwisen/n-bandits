@@ -28,7 +28,7 @@ class utils:
             print("Error: '%s' file not found." % configfile)
             sys.exit(1)
         except Exception as e:
-            log.error("Config Error: ", e)
+            log.error("Config Error: %s", e)
             sys.exit(1)
 
     @staticmethod
@@ -43,9 +43,25 @@ class utils:
         plt.savefig(fig, bbox_inches='tight')
         plt.close()
 
+class Simulation:
+    def __init__(self, config):
+        self.config = config
+
+    def q_learning(self):
+        self.initialize_q()
+        for t in range(self.config['time_steps']):
+            self.choose_action()
+            self.update_q()
+
+
+    def run(self):
+        log.info("Running simulation")
+        self.q_learning()
+        log.info("Simulation finished")
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Error: config file not given.")
         sys.exit(1)
     config = utils.get_config(sys.argv[1])
-    print(config)
+    Simulation(config).run()
