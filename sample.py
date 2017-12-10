@@ -6,6 +6,8 @@ qa_init = 0
 
 alpha = 0.1
 
+use_alpha = False
+
 
 table1 = {
     'qa_opt': [2.3, 2.1, 1.5, 1.3],

@@ -67,6 +67,9 @@ class Simulation:
 
     def __init__(self, config):
         self.config = config
+        self.chosen_actions = []
+        self.rewards = []
+        self.qtas = []
 
     @property
     def n(self):
@@ -145,9 +148,22 @@ class Simulation:
     def reward(self, action):
         return utils.normal(self.q_opt(action), self.sigma(action))
 
-    def update_q(self, action, reward):
+    def chosen_action_count(self, action):
+        return self.chosen_actions.count(action)
+
+    def _update_q_alpha(self, action, reward):
         self.Q[action] = self.Q[action] \
                          + self.alpha * (reward - self.Q[action])
+
+    def _update_q_reward_average(self, action, reward):
+        k = self.chosen_action_count(action)
+        self.Q[action] = (k * self.Q[action] + reward) / (k + 1)
+
+    def update_q(self, action, reward):
+        if self.config['use_alpha']:
+            self._update_q_alpha(action, reward)
+        else:
+            self._update_q_reward_average(action, reward)
 
     def q_learning(self):
         self.initialize_q()
@@ -159,6 +175,11 @@ class Simulation:
                       % (t, action, reward))
             self.update_q(action, reward)
             log.debug("%s: Q: %s" % (t, self.Q))
+            # must append after update_q because Q value
+            # based on chosen_action_count
+            self.chosen_actions.append(action)
+            self.rewards.append(reward)
+            self.qtas.append(self.Q[:])
 
     def run(self):
         log.info("Running %s steps simulation" % self.config['time_steps'])
