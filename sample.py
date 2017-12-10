@@ -6,10 +6,23 @@ qa_init = 0
 
 alpha = 0.1
 
-# Action Table 3
-sigma = [0.9, 0.6, 0.4, 2]
+
+table1 = {
+    'qa_opt': [2.3, 2.1, 1.5, 1.3],
+    'sigma': [0.9, 0.6, 0.4, 2]
+}
+
+table3 = {
+    'qa_opt': [1.3, 1.1, 0.5, 0.3],
+    'sigma': [0.9, 0.6, 0.4, 2]
+}
+
+table = table1
+
+sigma = table['sigma']
 # Qa*
-qa_opt = [1.3, 1.1, 0.5, 0.3]
+qa_opt = table['qa_opt']
+
 # Action selection methods: {'random' 'e_greedy' 'softmax'}
 action_select_method = 'e_greedy'
 
