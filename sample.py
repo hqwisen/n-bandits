@@ -1,6 +1,6 @@
 number_of_simulations = 1
 
-time_steps = 1
+time_steps = 10
 
 qa_init = 0
 

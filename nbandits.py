@@ -5,6 +5,7 @@ import logging
 import os
 import random
 import sys
+import math
 
 # Specify backend, to allow usage from terminal
 plt.switch_backend('agg')
@@ -58,7 +59,7 @@ class utils:
 class Simulation:
 
     @classmethod
-    def _eval_t(cls, expr, t):
+    def _eval_t(cls, expr, t=None):
         if t is None:
             return int(expr)
         else:
@@ -78,35 +79,52 @@ class Simulation:
     def alpha(self):
         return self.config['alpha']
 
-    def epsilon(self, t=None):
+    def epsilon(self, t):
         return Simulation._eval_t(self.config['epsilon'], t)
 
-    def tau(self, t=None):
+    def tau(self, t):
         return Simulation._eval_t(self.config['tau'], t)
 
-    def random_action(self):
-        return random.randint(0, self.n - 1)
+    def random_action(self, t):
+        action = random.randint(0, self.n - 1)
+        log.debug("%s: random action %s" % (t, action))
+        return action
 
-    def greedy_action(self):
+    def greedy_action(self, t):
         a, qmax = 0, self.Q[0]
         for i in range(1, self.n):
             if qmax < self.Q[i]:
                 a, qmax = i, self.Q[i]
+        log.debug("%s: (not chosen yet) egreedy action: %s" % (t, a))
         return a
 
-    def egreedy_action(self, t=None):
+    def egreedy_action(self, t):
         epsilon = self.epsilon(t)
-        choices = [self.greedy_action(), self.random_action()]
-        return np.random.choice(choices, p=[1 - epsilon, epsilon])
+        log.debug("%s: epsilon=%s" % (t, epsilon))
+        choices = [self.greedy_action(t), self.random_action(t)]
+        action = np.random.choice(choices, p=[1 - epsilon, epsilon])
+        log.debug("%s: (chosen) egreedy action %s" % (t, action))
+        return action
 
-    def softmax_action(self, t=None):
+    def softmax_exp(self, a, tau):
+        return math.exp(self.Q[a] / tau)
+
+    def boltzmann_distribution(self, action, tau):
+        return self.softmax_exp(action, tau) / sum([self.softmax_exp(a, tau)
+                                                    for a in range(self.n)])
+
+    def softmax_action(self, t):
         tau = self.tau(t)
-        raise NotImplementedError()
+        log.debug("%s: tau=%s" % (t, tau))
+        choices = [a for a in range(self.n)]
+        p = [self.boltzmann_distribution(a, tau) for a in range(self.n)]
+        log.debug("%s: softmax boltzmann distribution: %s" % (t, p))
+        return np.random.choice(choices, p=p)
 
     def choose_action(self, t):
         method = self.config['action_select_method']
         if method == 'random':
-            return self.random_action()
+            return self.random_action(t)
         elif method == 'e_greedy':
             return self.egreedy_action(t)
         elif method == 'softmax':
