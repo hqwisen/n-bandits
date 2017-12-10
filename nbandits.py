@@ -52,10 +52,18 @@ class utils:
 
     @staticmethod
     def normal(mu, sigma):
-        return np.random.normal(mu, sigma, 20)
+        return np.random.normal(mu, sigma)
 
 
 class Simulation:
+
+    @classmethod
+    def _eval_t(cls, expr, t):
+        if t is None:
+            return int(expr)
+        else:
+            return eval(expr)
+
     def __init__(self, config):
         self.config = config
 
@@ -70,6 +78,12 @@ class Simulation:
     def alpha(self):
         return self.config['alpha']
 
+    def epsilon(self, t=None):
+        return Simulation._eval_t(self.config['epsilon'], t)
+
+    def tau(self, t=None):
+        return Simulation._eval_t(self.config['tau'], t)
+
     def random_action(self):
         return random.randint(0, self.n - 1)
 
@@ -80,19 +94,23 @@ class Simulation:
                 a, qmax = i, self.Q[i]
         return a
 
-    def egreedy_action(self):
-        epsilon = self.config['e_greedy']
+    def egreedy_action(self, t=None):
+        epsilon = self.epsilon(t)
         choices = [self.greedy_action(), self.random_action()]
         return np.random.choice(choices, p=[1 - epsilon, epsilon])
+
+    def softmax_action(self, t=None):
+        tau = self.tau(t)
+        raise NotImplementedError()
 
     def choose_action(self, t):
         method = self.config['action_select_method']
         if method == 'random':
             return self.random_action()
         elif method == 'e_greedy':
-            return self.egreedy_action()
+            return self.egreedy_action(t)
         elif method == 'softmax':
-            raise NotImplementedError("softmax not implemented")
+            return self.softmax_action(t)
         else:
             raise SimulationException(
                 "Unknown action selection method '%s'" % method)
@@ -109,17 +127,25 @@ class Simulation:
     def reward(self, action):
         return utils.normal(self.q_opt(action), self.sigma(action))
 
-    def update_q(self, action):
-        self.Q[action] = self.Q[action] + self.alpha + self.reward(action)
+    def update_q(self, action, reward):
+        self.Q[action] = self.Q[action] \
+                         + self.alpha * (reward - self.Q[action])
 
     def q_learning(self):
         self.initialize_q()
         for t in range(self.config['time_steps']):
+            log.debug("Running step %s" % t)
             action = self.choose_action(t)
-            self.update_q(action)
+            reward = self.reward(action)
+            log.debug("%s: action chosen is %s with reward %s"
+                      % (t, action, reward))
+            self.update_q(action, reward)
+            log.debug("%s: Q: %s" % (t, self.Q))
 
     def run(self):
-        log.info("Running simulation")
+        log.info("Running %s steps simulation" % self.config['time_steps'])
+        log.info("Running simulation using action select: '%s'"
+                 % self.config['action_select_method'])
         self.q_learning()
         log.info("Simulation finished")
 
