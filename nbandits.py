@@ -58,7 +58,6 @@ class utils:
 class Simulation:
     def __init__(self, config):
         self.config = config
-        self.Q = [None for i in range(self.n)]
 
     @property
     def n(self):
@@ -69,15 +68,31 @@ class Simulation:
 
     @property
     def alpha(self):
-        return 0.9
+        return self.config['alpha']
 
     def random_action(self):
         return random.randint(0, self.n - 1)
+
+    def greedy_action(self):
+        a, qmax = 0, self.Q[0]
+        for i in range(1, self.n):
+            if qmax < self.Q[i]:
+                a, qmax = i, self.Q[i]
+        return a
+
+    def egreedy_action(self):
+        epsilon = self.config['e_greedy']
+        choices = [self.greedy_action(), self.random_action()]
+        return np.random.choice(choices, p=[1 - epsilon, epsilon])
 
     def choose_action(self, t):
         method = self.config['action_select_method']
         if method == 'random':
             return self.random_action()
+        elif method == 'e_greedy':
+            return self.egreedy_action()
+        elif method == 'softmax':
+            raise NotImplementedError("softmax not implemented")
         else:
             raise SimulationException(
                 "Unknown action selection method '%s'" % method)
@@ -91,17 +106,17 @@ class Simulation:
     def sigma(self, action):
         return self.config['sigma'][action]
 
-    def reward(self, action, t):
+    def reward(self, action):
         return utils.normal(self.q_opt(action), self.sigma(action))
 
-    def update_q(self, action, t):
-        self.Q[action] = self.Q[action] + self.alpha + self.reward(action, t)
+    def update_q(self, action):
+        self.Q[action] = self.Q[action] + self.alpha + self.reward(action)
 
     def q_learning(self):
         self.initialize_q()
         for t in range(self.config['time_steps']):
             action = self.choose_action(t)
-            self.update_q(action, t)
+            self.update_q(action)
 
     def run(self):
         log.info("Running simulation")
