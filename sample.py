@@ -4,6 +4,11 @@ time_steps = 1
 
 qa_init = 0
 
+# Number of decimals for Q values
+q_round = 2
+# Number of decimals for rewards
+reward_round = 2
+
 alpha = 0.1
 
 use_alpha = False

@@ -157,7 +157,8 @@ class Simulation:
         return self.config['sigma_factor'] * self.config['sigma'][action]
 
     def reward(self, action):
-        return utils.normal(self.q_opt(action), self.sigma(action))
+        r = utils.normal(self.q_opt(action), self.sigma(action))
+        return round(r, self.config['reward_round'])
 
     def chosen_action_count(self, action):
         return self.chosen_actions.count(action)
@@ -169,6 +170,7 @@ class Simulation:
     def _update_q_reward_average(self, action, reward):
         k = self.chosen_action_count(action)
         self.Q[action] = (k * self.Q[action] + reward) / (k + 1)
+        self.Q[action] = round(self.Q[action], self.config['q_round'])
 
     def update_q(self, action, reward):
         if self.config['use_alpha']:
