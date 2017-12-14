@@ -211,9 +211,12 @@ class NArmedBandits:
     def run(self):
         methods = self.config['action_select_methods']
         for method in methods:
-            simulations = getattr(self, '_run_%s' % method)(method)
+            try:
+                _run_method = getattr(self, '_run_%s' % method)
+            except AttributeError:
+                raise SimulationException("Unknown action selection method '%s'" % method)
+            simulations = _run_method(method)
             self.simulations.extend(simulations)
-            # FIXME when action unknown this will raise an AttributeError and not a SimException
 
     def _run_random(self, action_method):
         simulation = Simulation(self.config, action_method)
