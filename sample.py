@@ -1,6 +1,6 @@
 number_of_simulations = 1
 
-time_steps = 10
+time_steps = 1
 
 qa_init = 0
 
@@ -21,16 +21,21 @@ table3 = {
 
 table = table1
 
+# sigma_factor: multiply the standard deviation (sigma)
+sigma_factor = 1
 sigma = table['sigma']
 # Qa*
 qa_opt = table['qa_opt']
 
 # Action selection methods: {'random' 'e_greedy' 'softmax'}
-action_select_method = 'e_greedy'
+action_select_methods = ['random', 'e_greedy']
 
 # Can depend on t, this is why it's a string
 # epsilon for e-greedy action selection
 # epsilon = '1/(t**(1/2))' # 1/sqrt(t)
-epsilon = '1'
+# List of epsilon (will run multiple simulations per value)
+epsilon_list = ['1', '0.1']
 # tau = '4* ( (1000 - t) / 1000 )'
-tau = '1'
+tau_list = ['1']
+
+results_dir = 'results'

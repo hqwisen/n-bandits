@@ -65,11 +65,18 @@ class Simulation:
         else:
             return eval(expr)
 
-    def __init__(self, config):
+    def __init__(self, config, action_method, epsilon=None, tau=None):
         self.config = config
+        self._action_method = action_method
+        self._epsilon = epsilon
+        self._tau = tau
         self.chosen_actions = []
         self.rewards = []
         self.qtas = []
+
+    @property
+    def action_method(self):
+        return self._action_method
 
     @property
     def n(self):
@@ -83,10 +90,14 @@ class Simulation:
         return self.config['alpha']
 
     def epsilon(self, t):
-        return Simulation._eval_t(self.config['epsilon'], t)
+        if self._epsilon is None:
+            raise SimulationException("Epsilon is None, cannot calculate.")
+        return Simulation._eval_t(self._epsilon, t)
 
     def tau(self, t):
-        return Simulation._eval_t(self.config['tau'], t)
+        if self._tau is None:
+            raise SimulationException("Tau is None, cannot calculate.")
+        return Simulation._eval_t(self._tau, t)
 
     def random_action(self, t):
         action = random.randint(0, self.n - 1)
@@ -125,7 +136,7 @@ class Simulation:
         return np.random.choice(choices, p=p)
 
     def choose_action(self, t):
-        method = self.config['action_select_method']
+        method = self.action_method
         if method == 'random':
             return self.random_action(t)
         elif method == 'e_greedy':
@@ -143,7 +154,7 @@ class Simulation:
         return self.config['qa_opt'][action]
 
     def sigma(self, action):
-        return self.config['sigma'][action]
+        return self.config['sigma_factor'] * self.config['sigma'][action]
 
     def reward(self, action):
         return utils.normal(self.q_opt(action), self.sigma(action))
@@ -184,13 +195,55 @@ class Simulation:
     def run(self):
         log.info("Running %s steps simulation" % self.config['time_steps'])
         log.info("Running simulation using action select: '%s'"
-                 % self.config['action_select_method'])
+                 % self.action_method)
         self.q_learning()
         log.info("Simulation finished")
+
+
+class NArmedBandits:
+
+    def __init__(self, config):
+        self.config = config
+        self.simulations = []
+
+    def run(self):
+        methods = self.config['action_select_methods']
+        for method in methods:
+            simulations = getattr(self, '_run_%s' % method)(method)
+            self.simulations.extend(simulations)
+            # FIXME when action unknown this will raise an AttributeError and not a SimException
+
+    def _run_random(self, action_method):
+        simulation = Simulation(self.config, action_method)
+        simulation.run()
+        return [simulation]
+
+    def _run_e_greedy(self, action_method):
+        simulations = []
+        for epsilon in self.config['epsilon_list']:
+            simulation = Simulation(self.config, action_method, epsilon=epsilon)
+            simulation.run()
+            simulations.append(simulation)
+        return simulations
+
+    def _run_softmax(self, action_method):
+        simulations = []
+        for tau in self.config['tau_list']:
+            simulation = Simulation(self.config, action_method, tau=tau)
+            simulation.run()
+            simulations.append(simulation)
+        return simulations
+
+    def plot_average_reward(self):
+        pass
+
+    def plots(self):
+        pass
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Error: config file not given.")
         sys.exit(1)
-    Simulation(utils.get_config(sys.argv[1])).run()
+    nab = NArmedBandits(utils.get_config(sys.argv[1]))
+    nab.run()
