@@ -1,6 +1,8 @@
-number_of_simulations = 2000
+log = 'FATAL' # DEBUG, INFO, WARNING, FATAL
 
-time_steps = 1
+number_of_iterations = 10
+
+time_steps = 1000
 
 qa_init = 0
 
@@ -39,8 +41,10 @@ action_select_methods = ['random', 'e_greedy', 'softmax']
 # epsilon for e-greedy action selection
 # epsilon = '1/(t**(1/2))' # 1/sqrt(t)
 # List of epsilon (will run multiple simulations per value)
-epsilon_list = ['t', '0.1']
+epsilon_list = ['0', '0.1', '0.2']
 # tau = '4* ( (1000 - t) / 1000 )'
-tau_list = ['1', 't+2']
+tau_list = ['1', '0.1']
 
 results_dir = 'results'
+
+results_dir_rm = True

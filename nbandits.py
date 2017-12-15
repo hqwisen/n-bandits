@@ -6,12 +6,15 @@ import os
 import random
 import sys
 import math
+import shutil
+
+import time
 
 # Specify backend, to allow usage from terminal
 plt.switch_backend('agg')
 # Logger
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+
 
 class SimulationException(Exception):
     pass
@@ -39,14 +42,14 @@ class utils:
             sys.exit(1)
 
     @staticmethod
-    def plot(fig, data, axis, xlabel, ylabel, message=None):
+    def plot(fig, data_dict, xlabel, ylabel, message=None):
         if message is None:
             message = "Plot x: %s; y:%s" % (xlabel, ylabel)
         log.info("%s in '%s'" % (message, fig))
-        plt.axis(axis)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
-        plt.plot(data)
+        for name in data_dict:
+            plt.plot(data_dict[name], label=name)
         plt.savefig(fig, bbox_inches='tight')
         plt.close()
 
@@ -223,20 +226,16 @@ class NArmedBandits:
         self.simulations[action_method] = simulation
 
     def _run_e_greedy(self, action_method):
-        if action_method not in self.simulations:
-            self.simulations[action_method] = dict()
         for epsilon in self.config['epsilon_list']:
             simulation = Simulation(self.config, action_method, epsilon=epsilon)
             simulation.run()
-            self.simulations[action_method][epsilon] = simulation
+            self.simulations[action_method + ' ' + epsilon] = simulation
 
     def _run_softmax(self, action_method):
-        if action_method not in self.simulations:
-            self.simulations[action_method] = dict()
         for tau in self.config['tau_list']:
             simulation = Simulation(self.config, action_method, tau=tau)
             simulation.run()
-            self.simulations[action_method][tau] = simulation
+            self.simulations[action_method + ' ' + tau] = simulation
 
     def __str__(self):
         return str(self.simulations)
@@ -251,20 +250,80 @@ class MultipleNArmedBandits:
         self.config = config
         self.nabs = []
 
+    def create_results_dir(self):
+        if os.path.exists(self.results_dir()):
+            if self.config['results_dir_rm']:
+                log.warning("Removing existing directory '%s'"
+                            % self.results_dir())
+                shutil.rmtree(self.results_dir())
+            else:
+                log.error("Abort. Results directory '" + self.results_dir() +
+                          "' already exists.")
+                exit(1)
+        utils.mkdir(self.results_dir())
+
+    def results_dir(self):
+        return self.config['results_dir']
+
+    def results_path(self, path):
+        return os.path.join(self.results_dir(), path)
+
+    def get_all_sim_name(self):
+        results = []
+        for method in self.config['action_select_methods']:
+            if method == 'random':
+                results.append(method)
+            elif method == 'e_greedy':
+                for epsilon in self.config['epsilon_list']:
+                    results.append(method + ' ' + epsilon)
+            elif method == 'softmax':
+                for tau in self.config['tau_list']:
+                    results.append(method + ' ' + tau)
+            else:
+                raise SimulationException("Unknown action select method " + method)
+        return results
+
+    @property
+    def niter(self):
+        return self.config['number_of_iterations']
+
+    @property
+    def time_steps(self):
+        return self.config['time_steps']
+
     def run(self):
-        for i in range(self.config['number_of_simulations']):
+        for i in range(self.niter):
+            print("\rRunning nbandits iteration #{}".format(i + 1), end=' ')
             nab = NArmedBandits(self.config)
             nab.run()
             self.nabs.append(nab)
+        self.create_results_dir()
+        self.plot_average_reward()
 
     def plot_average_reward(self):
-        pass
+        rewards = {}
+        for sim_name in self.get_all_sim_name():
+            rewards[sim_name] = np.zeros(self.time_steps)
+        for nab in self.nabs:
+            for sim_name in nab.simulations:
+                simulation = nab.simulations[sim_name]
+                for i in range(self.time_steps):
+                    r = simulation.rewards[i]
+                    rewards[sim_name][i] += r
+        for sim_name in self.get_all_sim_name():
+            rewards[sim_name] = np.divide(rewards[sim_name], self.niter)
+        message = "Plot rewards"
+        xlabel, ylabel = 'Time steps', 'Reward'
+        utils.plot(self.results_path('rewards'), rewards, xlabel, ylabel, message)
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Error: config file not given.")
         sys.exit(1)
-    mnab = MultipleNArmedBandits(utils.get_config(sys.argv[1]))
+    config = utils.get_config(sys.argv[1])
+    level = logging.getLevelName(config['log'])
+    logging.basicConfig(level=level)
+    print("Running %s with config '%s'" % (__name__, sys.argv[1]))
+    mnab = MultipleNArmedBandits(config)
     mnab.run()
-    print(mnab.nabs)
