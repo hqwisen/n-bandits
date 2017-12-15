@@ -62,7 +62,7 @@ class utils:
 class Simulation:
 
     @classmethod
-    def _eval_t(cls, expr, t): # t can be in expr
+    def _eval_t(cls, expr, t):  # t can be in expr
         return eval(expr)
 
     def __init__(self, config, action_method, epsilon=None, tau=None):
@@ -289,6 +289,10 @@ class MultipleNArmedBandits:
     def time_steps(self):
         return self.config['time_steps']
 
+    @property
+    def nactions(self):
+        return len(self.config['qa_opt'])
+
     def run(self):
         self.create_results_dir()
         for i in range(self.niter):
@@ -297,7 +301,11 @@ class MultipleNArmedBandits:
             nab.run()
             self.nabs.append(nab)
         print()
+        self.plots()
+
+    def plots(self):
         self.plot_average_reward()
+        self.plot_qtas()
 
     def plot_average_reward(self):
         print("Plotting average rewards to %s" % self.results_path('rewards'))
@@ -308,13 +316,36 @@ class MultipleNArmedBandits:
             for sim_name in nab.simulations:
                 simulation = nab.simulations[sim_name]
                 for i in range(self.time_steps):
-                    r = simulation.rewards[i]
-                    rewards[sim_name][i] += r
+                    rewards[sim_name][i] += simulation.rewards[i]
         for sim_name in self.get_all_sim_name():
             rewards[sim_name] = np.divide(rewards[sim_name], self.niter)
         message = "Plot rewards"
         xlabel, ylabel = 'Time steps', 'Reward'
         utils.plot(self.results_path('rewards'), rewards, xlabel, ylabel, message)
+
+    def plot_qtas(self):
+        print("Plotting qtas to %s" % self.results_path('rewards'))
+        qtas_data = [{} for _ in range(self.nactions)]
+
+        for a in range(self.nactions):
+            for sim_name in self.get_all_sim_name():
+                qtas_data[a][sim_name] = np.zeros(self.time_steps)
+
+        for a in range(self.nactions):
+            for nab in self.nabs:
+                for sim_name in nab.simulations:
+                    simulation = nab.simulations[sim_name]
+                    for i in range(self.time_steps):
+                        qtas_data[a][sim_name][i] += simulation.qtas[i][a]
+
+        for a in range(self.nactions):
+            for sim_name in self.get_all_sim_name():
+                qtas_data[a][sim_name] = np.divide(qtas_data[a][sim_name], self.niter)
+
+        message = "Plot qtas"
+        xlabel, ylabel = 'Time steps', 'Q*'
+        for a in range(self.nactions):
+            utils.plot(self.results_path('qta_%d' % a), qtas_data[a], xlabel, ylabel, message)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-log = 'ERROR'  # DEBUG, INFO, WARNING, FATAL
+log = 'WARNING'  # DEBUG, INFO, WARNING, FATAL
 
 number_of_iterations = 2
 
