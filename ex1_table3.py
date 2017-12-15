@@ -1,6 +1,6 @@
 log = 'WARNING'  # DEBUG, INFO, WARNING, FATAL
 
-number_of_iterations = 2000
+number_of_iterations = 1000
 
 time_steps = 1000
 
