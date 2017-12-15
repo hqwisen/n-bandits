@@ -13,7 +13,6 @@ plt.switch_backend('agg')
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 
-
 class SimulationException(Exception):
     pass
 
@@ -198,6 +197,7 @@ class Simulation:
         log.info("Running %s steps simulation" % self.config['time_steps'])
         log.info("Running simulation using action select: '%s'"
                  % self.action_method)
+        log.info("tau(t) = %s\tepsilon(t) = %s" % (self._tau, self._epsilon))
         self.q_learning()
         log.info("Simulation finished")
 
@@ -206,7 +206,7 @@ class NArmedBandits:
 
     def __init__(self, config):
         self.config = config
-        self.simulations = []
+        self.simulations = {}
 
     def run(self):
         methods = self.config['action_select_methods']
@@ -215,34 +215,49 @@ class NArmedBandits:
                 _run_method = getattr(self, '_run_%s' % method)
             except AttributeError:
                 raise SimulationException("Unknown action selection method '%s'" % method)
-            simulations = _run_method(method)
-            self.simulations.extend(simulations)
+            _run_method(method)
 
     def _run_random(self, action_method):
         simulation = Simulation(self.config, action_method)
         simulation.run()
-        return [simulation]
+        self.simulations[action_method] = simulation
 
     def _run_e_greedy(self, action_method):
-        simulations = []
+        if action_method not in self.simulations:
+            self.simulations[action_method] = dict()
         for epsilon in self.config['epsilon_list']:
             simulation = Simulation(self.config, action_method, epsilon=epsilon)
             simulation.run()
-            simulations.append(simulation)
-        return simulations
+            self.simulations[action_method][epsilon] = simulation
 
     def _run_softmax(self, action_method):
-        simulations = []
+        if action_method not in self.simulations:
+            self.simulations[action_method] = dict()
         for tau in self.config['tau_list']:
             simulation = Simulation(self.config, action_method, tau=tau)
             simulation.run()
-            simulations.append(simulation)
-        return simulations
+            self.simulations[action_method][tau] = simulation
+
+    def __str__(self):
+        return str(self.simulations)
+
+    def __repr__(self):
+        return str(self)
+
+
+class MultipleNArmedBandits:
+
+    def __init__(self, config):
+        self.config = config
+        self.nabs = []
+
+    def run(self):
+        for i in range(self.config['number_of_simulations']):
+            nab = NArmedBandits(self.config)
+            nab.run()
+            self.nabs.append(nab)
 
     def plot_average_reward(self):
-        pass
-
-    def plots(self):
         pass
 
 
@@ -250,5 +265,6 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Error: config file not given.")
         sys.exit(1)
-    nab = NArmedBandits(utils.get_config(sys.argv[1]))
-    nab.run()
+    mnab = MultipleNArmedBandits(utils.get_config(sys.argv[1]))
+    mnab.run()
+    print(mnab.nabs)
