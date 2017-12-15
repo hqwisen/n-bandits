@@ -49,7 +49,7 @@ class utils:
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         for name in data_dict:
-            plt.plot(data_dict[name], label=name)
+            plt.plot(data_dict[name], label=name, alpha=0.5)
         plt.legend()
         plt.savefig(fig, bbox_inches='tight')
         plt.close()
@@ -290,12 +290,13 @@ class MultipleNArmedBandits:
         return self.config['time_steps']
 
     def run(self):
+        self.create_results_dir()
         for i in range(self.niter):
             print("\rRunning nbandits iteration #{}".format(i + 1), end=' ')
             nab = NArmedBandits(self.config)
             nab.run()
             self.nabs.append(nab)
-        self.create_results_dir()
+        print()
         self.plot_average_reward()
 
     def plot_average_reward(self):

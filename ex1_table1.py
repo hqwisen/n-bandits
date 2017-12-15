@@ -1,6 +1,6 @@
-log = 'FATAL'  # DEBUG, INFO, WARNING, FATAL
+log = 'ERROR'  # DEBUG, INFO, WARNING, FATAL
 
-number_of_iterations = 2000
+number_of_iterations = 2
 
 time_steps = 1000
 
