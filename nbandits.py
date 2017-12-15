@@ -42,16 +42,31 @@ class utils:
             sys.exit(1)
 
     @staticmethod
-    def plot(fig, data_dict, xlabel, ylabel, message=None):
+    def plot(fig, data_dict, xlabel, ylabel, message=None, alpha=0.7):
         if message is None:
             message = "Plot x: %s; y:%s" % (xlabel, ylabel)
         log.info("%s in '%s'" % (message, fig))
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         for name in data_dict:
-            plt.plot(data_dict[name], label=name, alpha=0.5)
+            plt.plot(data_dict[name], label=name, alpha=alpha)
         plt.legend()
         plt.savefig(fig, bbox_inches='tight')
+        plt.close()
+
+    @staticmethod
+    def hist(fig, name, data, xlabel="", ylabel="", message=None, xticks=None, alpha=0.7):
+        if message is None:
+            message = "Hist x: %s; y:%s" % (xlabel, ylabel)
+        log.info("%s in '%s'" % (message, fig))
+        plt.title(name)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.bar(list(data.keys()), data.values(), color='g')
+        if xticks is not None:
+            plt.xticks(range(len(xticks)), xticks)
+        # plt.hist(data)
+        plt.savefig(fig, format='png')
         plt.close()
 
     @staticmethod
@@ -306,6 +321,7 @@ class MultipleNArmedBandits:
     def plots(self):
         self.plot_average_reward()
         self.plot_qtas()
+        self.plot_action_histograms()
 
     def plot_average_reward(self):
         print("Plotting average rewards to %s" % self.results_path('rewards'))
@@ -346,6 +362,35 @@ class MultipleNArmedBandits:
         xlabel, ylabel = 'Time steps', 'Q*'
         for a in range(self.nactions):
             utils.plot(self.results_path('qta_%d' % a), qtas_data[a], xlabel, ylabel, message)
+
+    def plot_action_histograms(self):
+
+        print("Plotting action histograms to %s" % self.results_path('rewards'))
+        action_counts = {}
+        for sim_name in self.get_all_sim_name():
+            action_counts[sim_name] = {}
+            for a in range(self.nactions):
+                action_counts[sim_name][a] = 0
+
+        for a in range(self.nactions):
+            for nab in self.nabs:
+                for sim_name in nab.simulations:
+                    simulation = nab.simulations[sim_name]
+                    action_counts[sim_name][a] += simulation.chosen_action_count(a)
+
+        for sim_name in self.get_all_sim_name():
+            for a in range(self.nactions):
+                action_counts[sim_name][a] = np.divide(action_counts[sim_name][a], self.niter)
+
+        print(action_counts)
+
+        message = "Plot action histograms"
+        xticks = ['arm(%.1f,%.1f)' %
+                  (self.config['qa_opt'][a], self.config['sigma'][a])
+                  for a in range(self.nactions)]
+        for sim_name in self.get_all_sim_name():
+            utils.hist(self.results_path('arms_%s' % sim_name), sim_name,
+                       action_counts[sim_name], message=message, xticks=xticks)
 
 
 if __name__ == "__main__":

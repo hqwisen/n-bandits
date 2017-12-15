@@ -1,8 +1,8 @@
 log = 'ERROR'  # DEBUG, INFO, WARNING, ERROR
 
-number_of_iterations = 100
+number_of_iterations = 1
 
-time_steps = 1000
+time_steps = 100
 
 qa_init = 0
 
