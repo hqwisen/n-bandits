@@ -1,18 +1,17 @@
-log = 'ERROR'  # DEBUG, INFO, WARNING, ERROR
+log = 'WARNING'  # DEBUG, INFO, WARNING, FATAL
 
-number_of_iterations = 1
+number_of_iterations = 1000
 
-time_steps = 100
+time_steps = 1000
 
 qa_init = 0
 
 # Number of decimals for Q values
-q_round = 2
+q_round = 4
 # Number of decimals for rewards
-reward_round = 2
+reward_round = 4
 
 alpha = 0.1
-
 use_alpha = False
 
 table1 = {
@@ -25,10 +24,10 @@ table3 = {
     'sigma': [0.9, 0.6, 0.4, 2]
 }
 
-table = table1
+table = table3
 
 # sigma_factor: multiply the standard deviation (sigma)
-sigma_factor = 1
+sigma_factor = 2
 sigma = table['sigma']
 # Qa*
 qa_opt = table['qa_opt']
@@ -44,6 +43,6 @@ epsilon_list = ['0', '0.1', '0.2']
 # tau = '4* ( (1000 - t) / 1000 )'
 tau_list = ['1', '0.1']
 
-results_dir = 'results_sample'
+results_dir = 'results_ex2_table3'
 
-results_dir_rm = True
+results_dir_rm = False

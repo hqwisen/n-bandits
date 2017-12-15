@@ -382,8 +382,6 @@ class MultipleNArmedBandits:
             for a in range(self.nactions):
                 action_counts[sim_name][a] = np.divide(action_counts[sim_name][a], self.niter)
 
-        print(action_counts)
-
         message = "Plot action histograms"
         xticks = ['arm(%.1f,%.1f)' %
                   (self.config['qa_opt'][a], self.config['sigma'][a])
