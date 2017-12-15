@@ -387,7 +387,8 @@ class MultipleNArmedBandits:
                   (self.config['qa_opt'][a], self.config['sigma'][a])
                   for a in range(self.nactions)]
         for sim_name in self.get_all_sim_name():
-            utils.hist(self.results_path('arms_%s' % sim_name), sim_name,
+            name = sim_name.replace('/', ':') # Replacing division in formula
+            utils.hist(self.results_path('arms_%s' % name), sim_name,
                        action_counts[sim_name], message=message, xticks=xticks)
 
 

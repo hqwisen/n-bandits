@@ -2,7 +2,7 @@ log = 'ERROR'  # DEBUG, INFO, WARNING, ERROR
 
 number_of_iterations = 1
 
-time_steps = 100
+time_steps = 10
 
 qa_init = 0
 
@@ -41,8 +41,8 @@ action_select_methods = ['random', 'e_greedy', 'softmax']
 # epsilon = '1/(t**(1/2))' # 1/sqrt(t)
 # List of epsilon (will run multiple simulations per value)
 epsilon_list = ['0', '0.1', '0.2']
-# tau = '4* ( (1000 - t) / 1000 )'
-tau_list = ['1', '0.1']
+tau_list = ['4* ( (1000 - t) / 1000 )']
+# tau_list = ['1', '0.1']
 
 results_dir = 'results_sample'
 
