@@ -7,12 +7,11 @@ time_steps = 1000
 qa_init = 0
 
 # Number of decimals for Q values
-q_round = 2
+q_round = 4
 # Number of decimals for rewards
-reward_round = 2
+reward_round = 4
 
 alpha = 0.1
-
 use_alpha = False
 
 table1 = {
@@ -25,7 +24,7 @@ table3 = {
     'sigma': [0.9, 0.6, 0.4, 2]
 }
 
-table = table1
+table = table3
 
 # sigma_factor: multiply the standard deviation (sigma)
 sigma_factor = 1
@@ -34,16 +33,16 @@ sigma = table['sigma']
 qa_opt = table['qa_opt']
 
 # Action selection methods: {'random' 'e_greedy' 'softmax'}
-action_select_methods = ['random', 'e_greedy']
+action_select_methods = ['random', 'e_greedy', 'softmax']
 
 # Can depend on t, this is why it's a string
 # epsilon for e-greedy action selection
 # epsilon = '1/(t**(1/2))' # 1/sqrt(t)
 # List of epsilon (will run multiple simulations per value)
-epsilon_list = ['0']
+epsilon_list = ['0', '0.1', '0.2']
 # tau = '4* ( (1000 - t) / 1000 )'
 tau_list = ['1', '0.1']
 
-results_dir = 'results'
+results_dir = 'results_ex1_table3'
 
-results_dir_rm = True
+results_dir_rm = False

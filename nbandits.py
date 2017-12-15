@@ -50,6 +50,7 @@ class utils:
         plt.ylabel(ylabel)
         for name in data_dict:
             plt.plot(data_dict[name], label=name)
+        plt.legend()
         plt.savefig(fig, bbox_inches='tight')
         plt.close()
 
@@ -61,11 +62,8 @@ class utils:
 class Simulation:
 
     @classmethod
-    def _eval_t(cls, expr, t=None):
-        if t is None:
-            return int(expr)
-        else:
-            return eval(expr)
+    def _eval_t(cls, expr, t): # t can be in expr
+        return eval(expr)
 
     def __init__(self, config, action_method, epsilon=None, tau=None):
         self.config = config
@@ -301,6 +299,7 @@ class MultipleNArmedBandits:
         self.plot_average_reward()
 
     def plot_average_reward(self):
+        print("Plotting average rewards to %s" % self.results_path('rewards'))
         rewards = {}
         for sim_name in self.get_all_sim_name():
             rewards[sim_name] = np.zeros(self.time_steps)
