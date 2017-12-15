@@ -384,7 +384,7 @@ class MultipleNArmedBandits:
 
         message = "Plot action histograms"
         xticks = ['arm(%.1f,%.1f)' %
-                  (self.config['qa_opt'][a], self.config['sigma'][a])
+                  (self.config['qa_opt'][a], self.config['sigma_factor'] * self.config['sigma'][a])
                   for a in range(self.nactions)]
         for sim_name in self.get_all_sim_name():
             name = sim_name.replace('/', ':') # Replacing division in formula
