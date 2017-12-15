@@ -340,7 +340,7 @@ class MultipleNArmedBandits:
         utils.plot(self.results_path('rewards'), rewards, xlabel, ylabel, message)
 
     def plot_qtas(self):
-        print("Plotting qtas to %s" % self.results_path('rewards'))
+        print("Plotting qtas")
         qtas_data = [{} for _ in range(self.nactions)]
 
         for a in range(self.nactions):
@@ -365,7 +365,7 @@ class MultipleNArmedBandits:
 
     def plot_action_histograms(self):
 
-        print("Plotting action histograms to %s" % self.results_path('rewards'))
+        print("Plotting action histograms")
         action_counts = {}
         for sim_name in self.get_all_sim_name():
             action_counts[sim_name] = {}
