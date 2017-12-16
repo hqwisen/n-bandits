@@ -27,7 +27,7 @@ table3 = {
 table = table3
 
 # sigma_factor: multiply the standard deviation (sigma)
-sigma_factor = 2
+sigma_factor = 1 
 sigma = table['sigma']
 # Qa*
 qa_opt = table['qa_opt']
