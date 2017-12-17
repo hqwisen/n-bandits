@@ -1,8 +1,8 @@
-log = 'ERROR'  # DEBUG, INFO, WARNING, ERROR
+log = 'DEBUG'  # DEBUG, INFO, WARNING, ERROR
 
 number_of_iterations = 1
 
-time_steps = 10
+time_steps = 5000
 
 qa_init = 0
 
@@ -34,15 +34,15 @@ sigma = table['sigma']
 qa_opt = table['qa_opt']
 
 # Action selection methods: {'random' 'e_greedy' 'softmax'}
-action_select_methods = ['random', 'e_greedy', 'softmax']
+action_select_methods = ['softmax']
 
 # Can depend on t, this is why it's a string
 # epsilon for e-greedy action selection
 # epsilon = '1/(t**(1/2))' # 1/sqrt(t)
 # List of epsilon (will run multiple simulations per value)
 epsilon_list = ['0', '0.1', '0.2']
-tau_list = ['4* ( (1000 - t) / 1000 )']
-# tau_list = ['1', '0.1']
+# tau_list = ['4* ( (1000 - t) / 1000 )']
+tau_list = ['0.1']
 
 results_dir = 'results_sample'
 
