@@ -6,9 +6,9 @@ time_steps = 5000
 
 qa_init = 0
 
-sigma_0 = 0.2
-sigma_1 = 0.2
-sigma = 0.2
+sigma_0 = 0.1
+sigma_1 = 4
+sigma = 0.1
 
 max_tau = 10
 min_tau = 0.001
