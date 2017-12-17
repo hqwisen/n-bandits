@@ -8,15 +8,12 @@ import shutil
 
 log = logging.getLogger(__name__)
 
+
 class SimulationException(Exception):
     pass
 
 
 class Simulation:
-
-    @classmethod
-    def _eval_t(cls, expr, t):  # t can be in expr
-        return eval(expr)
 
     def __init__(self, config, action_method, tau=None):
         self.config = config
@@ -41,7 +38,14 @@ class Simulation:
     def tau(self, t):
         if self._tau is None:
             raise SimulationException("Tau is None, cannot calculate.")
-        return Simulation._eval_t(self._tau, t)
+        # Value used in self._tau
+        if 'max_tau' in self.config:
+            max_tau = self.config['max_tau']
+        if 'min_tau' in self.config:
+            min_tau = self.config['min_tau']
+        if 'decay_factor' in self.config:
+            decay_factor = self.config['decay_factor']
+        return eval(self._tau)
 
     def _exp(self, Q, action, tau):
         return math.exp(Q[action] / tau)
@@ -61,10 +65,31 @@ class Simulation:
     def softmax_actions(self, t):
         return self.softmax_action(self.Qa, t), self.softmax_action(self.Qb, t)
 
+    def max_reward(self, chosen_actions, action):
+        max_reward = 0 if len(self.rewards) == 0 else min(self.rewards)
+        for i in range(len(self.rewards)):
+            if chosen_actions[i] == action and max_reward < self.rewards[i]:
+                max_reward = self.rewards[i]
+        return max_reward
+
+    def EV(self, Q, chosen_actions, name=None):
+        ev = []
+        c = self.config['fmq_weight']
+        for a in range(self.nactions):
+            ev.append(Q[a] + (c * self.max_reward(chosen_actions, a)))
+        log.debug("EV %s = %s" % (name, ev))
+        return ev
+
+    def fmq_actions(self, t):
+        return self.softmax_action(self.EV(self.Qa, self.chosen_actions_a, 'a'), t), \
+               self.softmax_action(self.EV(self.Qb, self.chosen_actions_b, 'b'), t)
+
     def choose_actions(self, t):
         method = self.action_method
         if method == 'softmax':
             return self.softmax_actions(t)
+        elif method == 'fmq':
+            return self.fmq_actions(t)
         else:
             raise SimulationException(
                 "Unknown action selection method '%s'" % method)
@@ -169,6 +194,13 @@ class ClimbingGame:
             simulation.run()
             self.simulations[action_method + ' ' + tau] = simulation
 
+    def _run_fmq(self, action_method):
+        for i in range(len(self.config['fmq_tau_list'])):
+            simulation = Simulation(self.config, action_method, tau=self.config['fmq_tau_list'][i])
+            simulation.run()
+            self.simulations[action_method + ' '
+                             + self.config['fmq_tau_list_readable'][i]] = simulation
+
     def __str__(self):
         return str(self.simulations)
 
@@ -205,6 +237,9 @@ class MultipleClimbingGame:
         for method in self.config['action_select_methods']:
             if method == 'softmax':
                 for tau in self.config['tau_list']:
+                    results.append(method + ' ' + tau)
+            elif method == 'fmq':
+                for tau in self.config['fmq_tau_list_readable']:
                     results.append(method + ' ' + tau)
             else:
                 raise SimulationException("Unknown action select method " + method)
