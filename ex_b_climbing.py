@@ -36,4 +36,4 @@ number_of_actions = len(game[0])
 
 results_dir_rm = False
 
-results_dir = "results_climbing"
+results_dir = "results_ex_b_climbing"
