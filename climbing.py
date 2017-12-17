@@ -48,6 +48,8 @@ class Simulation:
         return round(eval(self._tau), 4)
 
     def _exp(self, Q, action, tau):
+        # print("exp values", end=": ")
+        # print(Q, action, tau)
         return math.exp(Q[action] / tau)
 
     def boltzmann_distribution(self, Q, action, tau):

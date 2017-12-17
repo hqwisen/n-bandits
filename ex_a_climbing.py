@@ -10,11 +10,11 @@ sigma_0 = 0.2
 sigma_1 = 0.2
 sigma = 0.2
 
-max_tau = 10
-min_tau = 0.1
+max_tau = 499
+min_tau = 1
 decay_factor = 1
 
-fmq_tau_list = ['(math.e**(-(decay_factor*t))) * max_tau + min_tau']  # used with fmq
+fmq_tau_list = ['(math.exp(-(decay_factor*t))) * max_tau + min_tau']  # used with fmq
 fmq_tau_list_readable = ['e^(-st) * Tmax + Tmin'] # used to show in plots
 fmq_weight = 1  # c value in the paper
 
@@ -34,6 +34,6 @@ game = stochastic_climbing_game
 
 number_of_actions = len(game[0])
 
-results_dir_rm = True
+results_dir_rm = False
 
 results_dir = "results_ex_a_climbing"
