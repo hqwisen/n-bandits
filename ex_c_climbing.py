@@ -1,6 +1,6 @@
 log = 'WARN'
 
-number_of_iterations = 100
+number_of_iterations = 10
 
 time_steps = 5000
 
@@ -10,15 +10,15 @@ sigma_0 = 0.1
 sigma_1 = 4
 sigma = 0.1
 
-max_tau = 499
-min_tau = 1
+max_tau = 10
+min_tau = 0.001
 decay_factor = 1
 
 use_fmq_max_reward = True
 
-fmq_tau_list = ['(math.exp(-(decay_factor*t))) * max_tau + min_tau']  # used with fmq
-fmq_tau_list_readable = ['e^(-st) * Tmax + Tmin'] # used to show in plots
 fmq_weight = 1  # c value in the paper
+fmq_tau_list = ['(math.exp(-(decay_factor*t))) * max_tau + min_tau']  # used with fmq
+fmq_tau_list_readable = ['e^(-t) * 10 + 0.001']  # used to show in plots
 
 tau_list = ['0.1']  # used with softmax
 
