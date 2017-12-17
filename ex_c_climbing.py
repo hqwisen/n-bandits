@@ -14,6 +14,8 @@ max_tau = 499
 min_tau = 1
 decay_factor = 1
 
+use_fmq_max_reward = True
+
 fmq_tau_list = ['(math.exp(-(decay_factor*t))) * max_tau + min_tau']  # used with fmq
 fmq_tau_list_readable = ['e^(-st) * Tmax + Tmin'] # used to show in plots
 fmq_weight = 1  # c value in the paper

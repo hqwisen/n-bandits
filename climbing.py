@@ -50,7 +50,7 @@ class Simulation:
     def _exp(self, Q, action, tau):
         # print("exp values", end=": ")
         # print(Q, action, tau)
-        return math.exp(Q[action] / tau)
+        return np.power(math.e, Q[action] / tau)
 
     def boltzmann_distribution(self, Q, action, tau):
         return self._exp(Q, action, tau) / sum([self._exp(Q, a, tau)
@@ -74,7 +74,7 @@ class Simulation:
                 max_reward = self.rewards[i]
         return max_reward
 
-    def EV(self, Q, chosen_actions, name=None):
+    def EV_max_reward(self, Q, qtas=None, chosen_actions=None, name=None):
         ev = []
         c = self.config['fmq_weight']
         for a in range(self.nactions):
@@ -83,9 +83,35 @@ class Simulation:
         log.debug("EV %s = %s" % (name, ev))
         return ev
 
+    def max_q(self, qtas, action):
+        maximum = None
+        for Q in qtas:
+            if maximum is None or maximum < Q[action]:
+                maximum = Q[action]
+        return maximum
+
+    def EV_max_q(self, Q, qtas=None, chosen_actions=None, name=None):
+        ev = []
+        c = self.config['fmq_weight']
+        for a in range(self.nactions):
+            count = chosen_actions.count(a)
+            if count != 0:
+                value = Q[a] + (c * (self.max_q(qtas, a) / count))
+            else:
+                value = Q[a]
+            ev.append(round(value, 4))
+        log.debug("EV %s = %s" % (name, ev))
+        return ev
+
+    def _fmq_actions(self, t, EV):
+        return self.softmax_action(EV(self.Qa, self.qtas_a, self.chosen_actions_a, 'a'), t), \
+               self.softmax_action(EV(self.Qb, self.qtas_b, self.chosen_actions_b, 'b'), t)
+
     def fmq_actions(self, t):
-        return self.softmax_action(self.EV(self.Qa, self.chosen_actions_a, 'a'), t), \
-               self.softmax_action(self.EV(self.Qb, self.chosen_actions_b, 'b'), t)
+        if self.config['use_fmq_max_reward']:
+            return self._fmq_actions(t, self.EV_max_reward)
+        else:
+            return self._fmq_actions(t, self.EV_max_q)
 
     def choose_actions(self, t):
         method = self.action_method
