@@ -11,7 +11,7 @@ sigma_1 = 4
 sigma = 0.1
 
 max_tau = 10
-min_tau = 0.001
+min_tau = 0.1
 decay_factor = 1
 
 fmq_tau_list = ['(math.e**(-(decay_factor*t))) * max_tau + min_tau']  # used with fmq

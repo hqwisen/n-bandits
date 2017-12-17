@@ -45,7 +45,7 @@ class Simulation:
             min_tau = self.config['min_tau']
         if 'decay_factor' in self.config:
             decay_factor = self.config['decay_factor']
-        return eval(self._tau)
+        return round(eval(self._tau), 4)
 
     def _exp(self, Q, action, tau):
         return math.exp(Q[action] / tau)
@@ -76,7 +76,8 @@ class Simulation:
         ev = []
         c = self.config['fmq_weight']
         for a in range(self.nactions):
-            ev.append(Q[a] + (c * self.max_reward(chosen_actions, a)))
+            value = Q[a] + (c * self.max_reward(chosen_actions, a))
+            ev.append(round(value, 4))
         log.debug("EV %s = %s" % (name, ev))
         return ev
 
