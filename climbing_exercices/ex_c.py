@@ -1,6 +1,6 @@
 log = 'WARN'
 
-number_of_iterations = 10
+number_of_iterations = 1
 
 time_steps = 5000
 
